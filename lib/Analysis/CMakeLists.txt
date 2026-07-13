@@ -6,6 +6,7 @@ set(LLVM_OPTIONAL_SOURCES
   OpCountAnalysis.cpp
   SchedulingAnalysis.cpp
   TestPasses.cpp
+  TestRemoveEmptySynthesisIfDef.cpp
 )
 
 add_circt_library(CIRCTDebugAnalysis
@@ -54,6 +55,7 @@ add_circt_library(CIRCTFIRRTLAnalysis
 
 add_circt_library(CIRCTAnalysisTestPasses
   TestPasses.cpp
+  TestRemoveEmptySynthesisIfDef.cpp
 
   LINK_LIBS PUBLIC
   CIRCTDebugAnalysis
@@ -61,5 +63,6 @@ add_circt_library(CIRCTAnalysisTestPasses
   CIRCTFIRRTLAnalysis
   CIRCTSchedulingAnalysis
   CIRCTHW
+  CIRCTSV
   MLIRPass
 )

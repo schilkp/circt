@@ -336,7 +336,9 @@ void TestCombIntegerRangeAnalysisPass::runOnOperation() {
 
 namespace circt {
 namespace test {
+void registerTestRemoveEmptySynthesisIfDefPass();
 void registerAnalysisTestPasses() {
+  registerTestRemoveEmptySynthesisIfDefPass();
   registerPass([]() -> std::unique_ptr<Pass> {
     return std::make_unique<TestDependenceAnalysisPass>();
   });

@@ -6,6 +6,8 @@ add_circt_dialect_library(CIRCTHWTransforms
   HWParameterizeConstantPorts.cpp
   HWPrintInstanceGraph.cpp
   HWSpecialize.cpp
+  IsolateModule.cpp
+  ModuleToTransferFunction.cpp
   PrintHWModuleGraph.cpp
   FlattenIO.cpp
   VerifyInnerRefNamespace.cpp

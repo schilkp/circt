@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rtl-netlist-stats"
+version = "0.1.0"
+description = "RTL netlist stats and visualization"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "clustergrammer2>=0.18.0",
+    "marimo>=0.23.13",
+    "matplotlib>=3.10.9",
+    "networkx>=3.4.2",
+    "pandas-stubs>=2.3.3.260113",
+    "pandas>=2.3.3",
+    "plotly>=6.9.0",
+    "pydot>=4.0.1",
+    "scikit-learn>=1.7.2",
+    "scipy>=1.15.3",
+    "seaborn>=0.13.2",
+    "statsmodels>=0.14.6",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rtl_netlist_stats"]

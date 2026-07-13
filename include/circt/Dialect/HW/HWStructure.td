@@ -531,6 +531,19 @@ def OutputOp : HWOp<"output", [Terminator, HasParent<"HWModuleOp">,
   let hasVerifier = 1;
 }
 
+def TFOutputOp : HWOp<"tfoutput", [HasParent<"HWModuleOp">, SameOperandsAndResultType, Pure]> {
+  let summary = "HW transfer func output operation";
+  let description = [{
+    "hw.tfoutput" annotates a specific transfer function output.
+  }];
+  let arguments = (ins AnyType:$input, StrAttr:$name, UnitAttr:$twoState);
+  let results = (outs AnyType:$result);
+
+  let assemblyFormat = [{
+    $input `as` $name (`two_state` $twoState^)? attr-dict `:` type($input)
+  }];
+}
+
 def HierPathOp : HWOp<"hierpath",
       [IsolatedFromAbove, Symbol,
        DeclareOpInterfaceMethods<InnerRefUserOpInterface>]> {

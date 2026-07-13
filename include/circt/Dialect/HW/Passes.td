@@ -27,6 +27,18 @@ def PrintHWModuleGraph : Pass<"hw-print-module-graph", "mlir::ModuleOp"> {
   ];
 }
 
+def IsolateModule : Pass<"hw-isolate-module", "mlir::ModuleOp"> {
+  let summary = "Isolate a single module, erasing all other modules and top-level operations";
+  let description = [{
+    This pass keeps only the module with the specified name in the top-level
+    module, and erases all other operations in the top-level module.
+  }];
+  let options = [
+    Option<"moduleName", "module", "std::string", "\"\"",
+           "The name of the module to isolate.">
+  ];
+}
+
 def IMDeadCodeElim : Pass<"hw-imdce", "mlir::ModuleOp"> {
   let summary = "Intermodule dead code elimination";
   let description = [{
@@ -194,5 +206,8 @@ def HWConvertBitcasts : Pass<"hw-convert-bitcasts", "mlir::ModuleOp"> {
   let dependentDialects = ["comb::CombDialect"];
 }
 
+def ModuleToTransferFunction : Pass<"hw-module-to-transfer-function", "hw::HWModuleOp"> {
+  let summary = "Convert a HW module to combinational transfer function form";
+}
 
 #endif // CIRCT_DIALECT_HW_PASSES_TD
