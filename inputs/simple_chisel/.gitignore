@@ -1,0 +1,24 @@
+# sbt / Scala build artifacts
+target/
+project/target/
+project/project/
+
+# Chisel elaboration outputs
+build/
+
+# Verilator simulation outputs
+expected_outputs.json
+inputs.json
+
+# Locally downloaded sbt toolchain (see Makefile)
+tools/
+
+# Coursier / ivy caches dropped into the project by mistake
+.coursier/
+.ivy/
+
+# Editor / OS cruft
+*.swp
+*.swo
+*~
+.DS_Store
