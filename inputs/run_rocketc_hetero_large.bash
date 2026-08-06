@@ -28,6 +28,8 @@ mkdir -p "$OUT"
   --test-remove-empty-synthesis-ifdef \
   --test-strip-macros-and-fragments \
   --test-remove-assert-always-blocks \
+  --hw-aggregate-to-comb \
+  --cse \
   --symbol-dce \
   --canonicalize \
   -o "$OUT"/rocketc_hetero_large-hw.mlir
