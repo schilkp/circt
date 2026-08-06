@@ -4,6 +4,14 @@ __generated_with = "0.23.13"
 app = marimo.App(width="full")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Netlist Structure Explorer
+    """)
+    return
+
+
 @app.cell
 def _():
     import os
@@ -19,6 +27,14 @@ def _():
     from rtl_netlist_stats.tf import dot_to_tf
 
     return dot_to_tf, heatmap, mo, np, os, parse_dot_file, pd, plt, sns
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Data Input
+    """)
+    return
 
 
 @app.cell
@@ -55,43 +71,6 @@ def _(dot_select, dot_to_tf, mo, parse_dot_file):
 
 
 @app.cell
-def _(mo, pd, tf):
-    # I/O Overview table
-    def bw(i: str):
-        return int(i.strip('i'))
-
-    records = []
-    for id in tf.input_nodes:
-        n = tf.g.nodes[id]
-        records.append(
-            {"name": n["label"], "category": n["kind"], "bitwidth": bw(n["type"])})
-
-    for id in tf.output_nodes:
-        n = tf.g.nodes[id]
-        records.append(
-            {"name": n["label"], "category": n["kind"], "bitwidth": bw(n["type"])})
-
-
-    df_io = pd.DataFrame(records)
-    ui_io = mo.ui.table(df_io, selection=None)
-    ui_io
-    return (df_io,)
-
-
-@app.cell
-def _(df_io, plt, sns):
-    # Histogram of bitwidth of state signals
-    df_io_no_out_reg = df_io.query("category != 'out_reg'")
-    fig_bw, ax_bw = plt.subplots(figsize=(8, 4))
-    sns.histplot(data=df_io_no_out_reg.dropna(
-        subset=["bitwidth"]), x="bitwidth", hue="category", multiple="stack", ax=ax_bw)
-    ax_bw.set_yscale("log")
-    ax_bw.set_title("Bitwidth Histogram by Category")
-    fig_bw
-    return
-
-
-@app.cell
 def _(np, pd, tf):
     # Calculate in-out path lengths:
     distances = tf.calc_inp_outp_max_distance()
@@ -125,6 +104,118 @@ def _(np, pd, tf):
     valid_rows = [r for r in non_pure_in if r in df_matrix.index]
     df_matrix_state = df_matrix.loc[valid_rows, valid_cols]
     return (df_matrix_state,)
+
+
+@app.cell
+def _(df_matrix_state, pd, tf, np):
+    # Stats for each input, output, path:
+    # Filter out all rows that are all NA
+    non_na_rows = df_matrix_state.dropna(how="all", axis=0)
+    non_na_cols = df_matrix_state.dropna(how="all", axis=1)
+
+    # Map node label -> bitwidth (parsed from node "type")
+    def _bw(t):
+        return int(t.strip('i'))
+
+    label_bw = {
+        data["label"]: _bw(data["type"])
+        for _, data in tf.g.nodes(data=True)
+        if "type" in data and "label" in data
+    }
+
+    # 1. All inputs and max path length to non-pure outputs
+    df_in_summary = pd.DataFrame({
+        "max_path_length": non_na_rows.max(axis=1),
+        "num_outputs_fed": non_na_rows.notna().sum(axis=1),
+        "furthest_output": non_na_rows.idxmax(axis=1)
+    }).sort_values("max_path_length", ascending=False)
+    df_in_summary.insert(0, "bitwidth", [label_bw.get(
+        lbl, np.nan) for lbl in df_in_summary.index])
+
+    # 2. All outputs and max path length to non-pure inputs
+    df_out_summary = pd.DataFrame({
+        "max_path_length": non_na_cols.max(axis=0),
+        "num_inputs_fed_from": non_na_cols.notna().sum(axis=0),
+        "furthest_input": non_na_cols.idxmax(axis=0)
+    }).sort_values("max_path_length", ascending=False)
+    df_out_summary.insert(0, "bitwidth", [label_bw.get(
+        lbl, np.nan) for lbl in df_out_summary.index])
+
+    df_in_to_out = df_matrix_state.stack().reset_index()
+    df_in_to_out.columns = ["state_input", "state_output", "path_length"]
+    df_in_to_out = df_in_to_out.sort_values("path_length", ascending=False)
+    return df_in_summary, df_in_to_out, df_out_summary
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Overview Tables
+    """)
+    return
+
+
+@app.cell
+def _(mo, pd, tf):
+    # I/O Overview table
+    def bw(i: str):
+        return int(i.strip('i'))
+
+    records = []
+    for id in tf.input_nodes:
+        n = tf.g.nodes[id]
+        if n["kind"] == "in":
+            records.append(
+                {"name": n["label"], "category": n["kind"], "bitwidth": bw(n["type"])})
+
+    for id in tf.output_nodes:
+        n = tf.g.nodes[id]
+        if n["kind"] == "out":
+            records.append(
+                {"name": n["label"], "category": n["kind"], "bitwidth": bw(n["type"])})
+
+    df_io = pd.DataFrame(records)
+    ui_io = mo.ui.table(df_io, selection=None)
+    ui_io
+    return
+
+
+@app.cell
+def _(df_in_summary, mo):
+    ui1 = mo.vstack([
+        mo.md("### State Inputs"),
+        mo.ui.table(df_in_summary, selection=None)
+    ])
+    ui1
+    return
+
+
+@app.cell
+def _(mo, df_out_summary):
+    ui2 = mo.vstack([
+        mo.md("### State Outputs"),
+        mo.ui.table(df_out_summary, selection=None)
+    ])
+    ui2
+    return
+
+
+@app.cell
+def _(df_in_to_out, mo):
+    ui3 = mo.vstack([
+        mo.md("### State I/O Paths"),
+        mo.ui.table(df_in_to_out, selection=None)
+    ])
+    ui3
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Stats/Plots
+    """)
+    return
 
 
 @app.cell
@@ -168,84 +259,126 @@ def _(df_matrix_state, pd, plt, sns):
 
 
 @app.cell
+def _(df_out_summary, plt, sns):
+    # Histogram of fan-in of non-pure (state: FF or Memory) outputs.
+    # Fan-in = number of non-pure (state) inputs required to compute the output.
+    fanin = df_out_summary["num_inputs_fed_from"]
+    fig_fanin, ax_fanin = plt.subplots(figsize=(8, 4))
+    sns.histplot(data=fanin, ax=ax_fanin, discrete=True)
+    ax_fanin.set_title(
+        "Fan-in Histogram of Non-Pure (State) Outputs"
+    )
+    ax_fanin.set_xlabel("Number of Non-Pure (State) Inputs")
+    ax_fanin.set_ylabel("Number of Non-Pure (State) Outputs")
+    fig_fanin
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
-    n_slider = mo.ui.slider(
-        start=1, stop=100, step=1, value=10, label="Select N (Top N outputs)"
+    mo.md(r"""
+    ## State Output: Input Cone Viz
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    fanin_output_text = mo.ui.text(
+        value="",
+        placeholder="Paste a state output name (e.g. from the State Outputs table)",
+        label="State Output Name",
     )
-    n_slider
-    return (n_slider,)
+    fanin_output_text
+    return (fanin_output_text,)
 
 
 @app.cell
-def _(df_matrix_state, n_slider, plot_df, plt, sns):
-    N = n_slider.value
-    top_outputs = plot_df.nlargest(N, "max_path_length").index
-    # Convert matrix (in-vs-out) dataframe to one output per row:
-    melted = (
-        df_matrix_state[top_outputs]
-        .melt(var_name="output", value_name="path_length")
-        .dropna()
+def _(fanin_output_text, mo, tf):
+    import networkx as nx_fanin
+
+    target_label = fanin_output_text.value.strip()
+    mo.stop(
+        not target_label,
+        "Please enter a valid state output name (copy one from the State Outputs table).",
     )
-    fig_top_n, ax_top_n = plt.subplots(figsize=(10, 6))
-    sns.histplot(data=melted, x="path_length", ax=ax_top_n)
-    ax_top_n.set_title(f"Input-to-Output Path Lengths for Top {N} Non-Pure Outputs")
-    fig_top_n
+
+    # Map the pasted label to a node id, restricted to non-pure (state) outputs
+    target_id = None
+    for nid, ndata in tf.g.nodes.items():
+        if ndata.get("kind") in ["out_reg", "out_mem"] and ndata.get("label") == target_label:
+            target_id = nid
+            break
+
+    mo.stop(
+        not target_id,
+        f"No state output named '{target_label}' found.",
+    )
+
+    # Build the fan-in cone: the selected output plus all of its ancestors
+    nodes_in_cone = {target_id}
+    nodes_in_cone.update(nx_fanin.ancestors(tf.g, target_id))
+    sub_g_fanin = tf.g.subgraph(nodes_in_cone).copy()
+
+    # Remove constants from the cone
+    const_nodes = [
+        n for n, d in sub_g_fanin.nodes(data=True)
+        if d.get("kind") == "op" and "hw.constant" in d.get("label", "")
+    ]
+    sub_g_fanin.remove_nodes_from(const_nodes)
+
+    # Style nodes: inputs (state) vs muxes vs the selected output vs other ops
+    for fid, fattrs in sub_g_fanin.nodes(data=True):
+        fkind = fattrs.get("kind", "op")
+        forig_label = fattrs.get("label", fid)
+        flabel = forig_label.replace('\\"', '').replace(
+            '"', '').replace('\\', '')
+        fnode_type = fattrs.get("type", "")
+        if fnode_type:
+            flabel = f"{flabel}\n({fnode_type})"
+        fattrs["label"] = flabel
+        fattrs["style"] = "filled"
+
+        if fkind in ("in_reg", "in_mem"):
+            fattrs["fillcolor"] = "#c7e9b4"  # green: state inputs
+            fattrs["shape"] = "box"
+        elif fkind == "in":
+            fattrs["fillcolor"] = "#cfe2f3"  # light blue: pure inputs
+            fattrs["shape"] = "box"
+        elif fkind in ("out_reg", "out_mem"):
+            fattrs["fillcolor"] = "#ffcccb"  # red: selected state output
+            fattrs["shape"] = "box"
+        elif fkind == "op" and "comb.mux" in forig_label:
+            fattrs["fillcolor"] = "#ffd966"  # orange: muxes
+            fattrs["shape"] = "ellipse"
+        else:
+            fattrs["fillcolor"] = "#eeeeee"  # neutral: other ops
+            fattrs["shape"] = "ellipse"
+
+    pydot_g_fanin = nx_fanin.drawing.nx_pydot.to_pydot(sub_g_fanin)
+    pydot_g_fanin.set_rankdir("LR")
+    png_bytes_fanin = pydot_g_fanin.create_png()
+    dot_string_fanin = pydot_g_fanin.to_string()
+
+    fanin_ui = mo.vstack([
+        mo.md(f"### Fan-in Cone for `{target_label}`"),
+        mo.image(src=png_bytes_fanin),
+        mo.md("#### Raw DOT Code"),
+        mo.ui.text_area(
+            value=dot_string_fanin,
+            label="DOT Code (click inside and press Ctrl+A, Ctrl+C to copy)",
+            rows=15,
+        ),
+    ])
+    fanin_ui
     return
 
 
-@app.cell
-def _(df_matrix_state, pd):
-    # Filter out all rows that are all NA
-    non_na_rows = df_matrix_state.dropna(how="all", axis=0)
-    non_na_cols = df_matrix_state.dropna(how="all", axis=1)
-
-    # 1. All inputs and max path length to non-pure outputs
-    in_summary = pd.DataFrame({
-        "max_path_length": non_na_rows.max(axis=1),
-        "num_outputs_fed": non_na_rows.notna().sum(axis=1),
-        "furthest_output": non_na_rows.idxmax(axis=1)
-    }).sort_values("max_path_length", ascending=False)
-
-    # 2. All outputs and max path length to non-pure inputs
-    out_summary = pd.DataFrame({
-        "max_path_length": non_na_cols.max(axis=0),
-        "num_inputs_fed_from": non_na_cols.notna().sum(axis=0),
-        "furthest_input": non_na_cols.idxmax(axis=0)
-    }).sort_values("max_path_length", ascending=False)
-
-    in_to_out = df_matrix_state.stack().reset_index()
-    in_to_out.columns = ["state_input", "state_output", "path_length"]
-    in_to_out = in_to_out.sort_values("path_length", ascending=False)
-    return in_summary, in_to_out, out_summary
-
-
-@app.cell
-def _(in_summary, mo):
-    ui1 = mo.vstack([
-        mo.md("### State Inputs"),
-        mo.ui.table(in_summary, selection=None)
-    ])
-    ui1
-    return
-
-
-@app.cell
-def _(mo, out_summary):
-    ui2 = mo.vstack([
-        mo.md("### State Outputs"),
-        mo.ui.table(out_summary, selection=None)
-    ])
-    ui2
-    return
-
-
-@app.cell
-def _(in_to_out, mo):
-    ui3 = mo.vstack([
-        mo.md("### State I/O Paths"),
-        mo.ui.table(in_to_out, selection=None)
-    ])
-    ui3
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Heatmaps
+    """)
     return
 
 
@@ -258,9 +391,10 @@ def heatmap_cell(df_matrix_state, heatmap):
 @app.cell
 def _(df_matrix_state, mo, np, plt):
     import io
-    from PIL import Image
+
     import matplotlib.cm as cm
     import matplotlib.colors as mcolors
+    from PIL import Image
 
     # Render non-pure to non-pure full heatmap as an image
     data = df_matrix_state.values
@@ -293,14 +427,16 @@ def _(df_matrix_state, mo, np, plt):
 
     fig, ax = plt.subplots(figsize=(6, 0.5))
     fig.subplots_adjust(bottom=0.5)
-    cb = plt.colorbar(cm.ScalarMappable(norm=mcolors.Normalize(vmin=0, vmax=vmax), cmap=colormap), cax=ax, orientation='horizontal')
+    cb = plt.colorbar(cm.ScalarMappable(norm=mcolors.Normalize(
+        vmin=0, vmax=vmax), cmap=colormap), cax=ax, orientation='horizontal')
     cb.set_label('Path Length')
     buf_cb = io.BytesIO()
     fig.savefig(buf_cb, format='PNG', bbox_inches='tight')
     plt.close(fig)
-    cb_element = mo.image(src=buf_cb.getvalue(),width="25%")
+    cb_element = mo.image(src=buf_cb.getvalue(), width="25%")
 
-    ui_element = mo.vstack([img_element, mo.Html("<div style='height: 20px;'></div>"), cb_element])
+    ui_element = mo.vstack([img_element, mo.Html(
+        "<div style='height: 20px;'></div>"), cb_element])
     ui_element
     return
 
