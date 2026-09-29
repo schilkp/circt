@@ -1,0 +1,38 @@
+digraph G {
+  compound = true;
+  subgraph cluster_1 {
+    v2 [label = " ", shape = plain];
+    label = "builtin.module : ()\l";
+    subgraph cluster_3 {
+      v4 [label = " ", shape = plain];
+      label = "";
+      subgraph cluster_5 {
+        v6 [label = " ", shape = plain];
+        label = "hw.module : ()\lmodule_type: !hw.modty\<input reg_count : i8, output out_io_count : i8, output out_io_atMax : i1, output reg_count_next : i8\>\lparameters: []\lresult_locs: [loc(\"../example_netlists/counter/mlir/counter-hw-flat-tf.mlir\":2:63), loc(\"../example_netlists/counter/mlir/counter-hw-flat-tf.mlir\":2:86), loc(\"../example_netlists/counter/mlir/counter-hw-flat-tf.mlir\":2:109)]\lsym_name: \"SimpleChiselTop_transfer\"\l";
+        subgraph cluster_7 {
+          v8 [label = " ", shape = plain];
+          label = "";
+          v9 [label = "%reg_count : i8", shape = oval];
+          v10 [fillcolor = "0.000000 0.3 0.95", label = "hw.constant : i8 attr={value: 1 : i8}", shape = oval, style = filled];
+          v11 [fillcolor = "0.000000 0.3 0.95", label = "hw.constant : i8 attr={value: -56 : i8}", shape = oval, style = filled];
+          v12 [fillcolor = "0.142857 0.3 0.95", label = "comb.add : i8 attr={sv.namehint: \"_count_T\",twoState: unit}", shape = oval, style = filled];
+          v13 [fillcolor = "0.285714 0.3 0.95", label = "comb.icmp : i1 attr={predicate: 0 : i64,sv.namehint: \"io_atMax\",twoState: unit}", shape = oval, style = filled];
+          v14 [fillcolor = "0.428571 0.3 0.95", label = "hw.tfoutput : i8 attr={name: \"out_io_count\"}", shape = oval, style = filled];
+          v15 [fillcolor = "0.428571 0.3 0.95", label = "hw.tfoutput : i1 attr={name: \"out_io_atMax\"}", shape = oval, style = filled];
+          v16 [fillcolor = "0.428571 0.3 0.95", label = "hw.tfoutput : i8 attr={name: \"reg_count_next\"}", shape = oval, style = filled];
+          v17 [fillcolor = "0.571429 0.3 0.95", label = "hw.output attr={output_names: [\"out_io_count\", \"out_io_atMax\", \"reg_count_next\"]}", shape = oval, style = filled];
+        }
+      }
+    }
+  }
+  v9 -> v12[style = solid];
+  v10 -> v12[style = solid];
+  v9 -> v13[style = solid];
+  v11 -> v13[style = solid];
+  v9 -> v14[style = solid];
+  v13 -> v15[style = solid];
+  v12 -> v16[style = solid];
+  v14 -> v17[style = solid];
+  v15 -> v17[style = solid];
+  v16 -> v17[style = solid];
+}

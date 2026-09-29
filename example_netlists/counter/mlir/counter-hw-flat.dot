@@ -1,0 +1,48 @@
+digraph G {
+  compound = true;
+  subgraph cluster_1 {
+    v2 [label = " ", shape = plain];
+    label = "builtin.module : ()\l";
+    subgraph cluster_3 {
+      v4 [label = " ", shape = plain];
+      label = "";
+      subgraph cluster_5 {
+        v6 [label = " ", shape = plain];
+        label = "hw.module : ()\lmodule_type: !hw.modty\<input io_clock : !seq.clock, input io_reset : i1, output io_count : i8, output io_atMax : i1\>\lparameters: []\lresult_locs: [loc(\"../example_netlists/counter/mlir/counter-hw-flat.mlir\":2:80), loc(\"../example_netlists/counter/mlir/counter-hw-flat.mlir\":2:99)]\lsym_name: \"SimpleChiselTop\"\l";
+        subgraph cluster_7 {
+          v8 [label = " ", shape = plain];
+          label = "";
+          v9 [label = "%io_clock : !seq.clock", shape = oval];
+          v10 [label = "%io_reset : i1", shape = oval];
+          v11 [fillcolor = "0.000000 0.3 0.95", label = "hw.constant : i8 attr={value: 1 : i8}", shape = oval, style = filled];
+          v12 [fillcolor = "0.000000 0.3 0.95", label = "hw.constant : i8 attr={value: 0 : i8}", shape = oval, style = filled];
+          v13 [fillcolor = "0.000000 0.3 0.95", label = "hw.constant : i8 attr={value: -56 : i8}", shape = oval, style = filled];
+          v14 [fillcolor = "0.111111 0.3 0.95", label = "seq.firreg : i8 attr={firrtl.random_init_start: 0 : ui64,name: \"count\",sv.namehint: \"count\"}", shape = oval, style = filled];
+          v15 [fillcolor = "0.222222 0.3 0.95", label = "comb.add : i8 attr={sv.namehint: \"_count_T\",twoState: unit}", shape = oval, style = filled];
+          v16 [fillcolor = "0.333333 0.3 0.95", label = "comb.icmp : i1 attr={predicate: 0 : i64,sv.namehint: \"io_atMax\",twoState: unit}", shape = oval, style = filled];
+          v17 [fillcolor = "0.444444 0.3 0.95", label = "hw.output", shape = oval, style = filled];
+        }
+      }
+      subgraph cluster_18 {
+        v19 [label = " ", shape = plain];
+        label = "om.class : ()\lfieldNames: []\lfieldTypes: \{\}\lformalParamNames: [\"basepath\"]\lsym_name: \"SimpleChiselTop_Class\"\l";
+        subgraph cluster_20 {
+          v21 [label = " ", shape = plain];
+          label = "";
+          v22 [label = "%basepath : !om.basepath", shape = oval];
+          v23 [fillcolor = "0.666667 0.3 0.95", label = "om.class.fields", shape = oval, style = filled];
+        }
+      }
+    }
+  }
+  v15 -> v14[style = solid];
+  v9 -> v14[style = solid];
+  v10 -> v14[style = solid];
+  v12 -> v14[style = solid];
+  v14 -> v15[style = solid];
+  v11 -> v15[style = solid];
+  v14 -> v16[style = solid];
+  v13 -> v16[style = solid];
+  v14 -> v17[style = solid];
+  v16 -> v17[style = solid];
+}

@@ -1,0 +1,16 @@
+digraph G {
+  { rank = min; v9; }
+  { rank = max; v14 v15 v16; }
+  v9 [fillcolor = "0.350000 0.4 0.95", label = "%reg_count : i8", shape = oval, style = filled, group = "g0"];
+  v12 [fillcolor = "0.580000 0.2 0.97", label = "comb.add : i8 attr={sv.namehint: \"_count_T\",twoState: unit}", shape = oval, style = filled];
+  v13 [fillcolor = "0.580000 0.2 0.97", label = "comb.icmp : i1 attr={predicate: 0 : i64,sv.namehint: \"io_atMax\",twoState: unit}", shape = oval, style = filled];
+  v14 [fillcolor = "0.050000 0.4 0.95", label = "hw.tfoutput : i8 attr={name: \"out_io_count\"}", shape = oval, style = filled];
+  v15 [fillcolor = "0.050000 0.4 0.95", label = "hw.tfoutput : i1 attr={name: \"out_io_atMax\"}", shape = oval, style = filled];
+  v16 [fillcolor = "0.050000 0.4 0.95", label = "hw.tfoutput : i8 attr={name: \"reg_count_next\"}", shape = oval, style = filled, group = "g0"];
+  v9 -> v12[style = solid];
+  v9 -> v13[style = solid];
+  v9 -> v14[style = solid];
+  v13 -> v15[style = solid];
+  v12 -> v16[style = solid];
+  v9 -> v16[style = invis, weight = 100];
+}

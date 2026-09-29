@@ -1,0 +1,12 @@
+digraph G {
+  v14 [fillcolor = "0.111111 0.3 0.95", label = "seq.firreg : i8 attr={firrtl.random_init_start: 0 : ui64,name: \"count\",sv.namehint: \"count\"}", shape = oval, style = filled, kind = "seq"];
+  v15 [fillcolor = "0.222222 0.3 0.95", label = "comb.add : i8 attr={sv.namehint: \"_count_T\",twoState: unit}", shape = oval, style = filled, kind = "comb"];
+  v16 [fillcolor = "0.333333 0.3 0.95", label = "comb.icmp : i1 attr={predicate: 0 : i64,sv.namehint: \"io_atMax\",twoState: unit}", shape = oval, style = filled, kind = "comb"];
+  v15 -> v14[style = solid];
+  v14 -> v15[style = solid];
+  v14 -> v16[style = solid];
+  output0 [label = "from 'seq.firreg : i8 attr={firrtl.random_init_start: 0 : ui64,name: \"count\",sv.namehint: \"count\"}'", shape = oval, kind = "output"];
+  v14 -> output0[style = solid];
+  output1 [label = "from 'comb.icmp : i1 attr={predicate: 0 : i64,sv.namehint: \"io_atMax\",twoState: unit}'", shape = oval, kind = "output"];
+  v16 -> output1[style = solid];
+}
